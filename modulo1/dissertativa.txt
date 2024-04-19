@@ -1,1 +1,11 @@
-texto
+calcular multiplicação por 9 de 1 até 10:
+
+1 - observe qual número está sendo multiplicado por 9
+
+1 - subtraia 1 do número observado, sem alterar o original, e escreva o resultado depois do sinal de igual. Este será seu primeiro dígito.
+
+2 - subtraia 10 pelo número observado e escreva o resultado após o número que está depois do sinal de igual. Este é o segundo dígito.
+
+3 - Observe o resultado formado pela junção dos dois números após o sinal de igual. Este é o resultado
+
+
