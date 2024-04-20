@@ -1,0 +1,15 @@
+1.n = entrada("número que será multiplicado por 9")
+
+#lidar com números incompatíveis
+2.se for maior do que 10 ou menor que 0:
+3.	fim()
+4.se não:
+	#obter dígitos
+5.	d1 = n - 1
+6.	d2 = 10 - n
+	
+	#calcular resultado
+7.	x = d1 * 10 + d2
+
+#mostrar resultado
+8.saída("9 * {n} = {x}")
