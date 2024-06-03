@@ -1,1 +1,7 @@
-user 1 logged
+user 0 logged
+went to management function
+Products list created
+Products list created
+went to management function
+Products list created
+program exit
