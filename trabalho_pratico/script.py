@@ -3,8 +3,9 @@ import os
 
 logs = open('logs.txt','w')
 
-#criar arquivos necessários se não existirem
 def create_files():
+    '''criar arquivos necessários se não existirem'''
+
     path = os.getcwd()
     
     if not os.path.exists(f'{path}/products.csv'):
@@ -15,8 +16,9 @@ def create_files():
         with open('users.csv','w') as file:
             file.write('id,user,password,permition\n0,owner,00000,3')
     
-#função para lógica de login
+
 def Login():
+    '''função para lógica de login'''
 
     isLogged = False
 
@@ -50,33 +52,31 @@ def Login():
             if option.lower().strip() == 's':
                 program_exit()
         
-#onde o usuário escolherá o que fazer
 def Main(id, user, permition):
+    '''onde o usuário escolherá o que fazer'''
+
     print(f'Bem-vindo(a) {user}!')
 
     #só vai sair quando o usuário pedir
     while True:
+        maximum = 2
         print('O que você gostaria de fazer?');print('')
         print('[0]sair - [1]trocar usuário - [2]caixa',end=' ')
 
         #permissões para pessoas com cargo maior
         if permition > 1:
+            maximum = 3
             print(' - [3]Gerenciar produtos', end='')
 
         print('')
 
         #para não crashar se escrever algo que não for um número
-        while True:
-            option = input('')
-            if option.isdigit():
-                option = int(option)
-                break
-            else:
-                print('Opção inválida')
+        option = while_option(0,maximum)
 
         if option == 0:
             program_exit()
         elif option == 1:
+            logs.write(f'user {id} left')
             Login()
             break
         elif option == 2:
@@ -87,94 +87,99 @@ def Main(id, user, permition):
         else:
             print('Opção inválida')
 
-#onde dados dos produtos podem ser alterados
 def management(id, user):
+    '''onde dados dos produtos podem ser alterados'''
+
     logs.write('went to management function\n')
 
     while True:
-        
         print('O que deseja fazer?')
-        print('[1]Criar - [2]Atualizar - [3]Deletar')
+        print('[0]Voltar - [1]Criar - [2]Atualizar - [3]Deletar')
 
-        while True:
-            option = input('')
-            if option.isdigit():
-                option = int(option)
-                break
-            else:
-                print('Opção inválida')
+        option = while_option(0,3)
         
+        if option == 0:
+            break
         #adicionar produto
         if option == 1:
-            
-            print('insira os dados do produto')
-            while True:
-                product_id = input('ID: ')
-                products = create_product_list()
-                if product_id not in (i['id'] for i in products):
-                    break
-                else:
-                    print('id já está sendo usado')
-                    
-            product_name = input('Nome: ')
-            product_price = input('Preço unitário: ')
-            product_amount = input('Quantidade: ')
-
-            with open('products.csv','a') as file:
-                file.write('\n')
-                file.write(f'{product_id},{product_name},{product_price},{product_amount}')
-
+            create_products()
         #modificar produto
         elif option == 2:
             while True:
+                #verificar se id existe
                 product_id = input('ID: ')
                 products = create_product_list()
                 if product_id not in (i['id'] for i in products):
                     print('id não encontrado')
-                    option = input('Quer Voltar ao Menu principal?[s/n]: ')
+                    option = input('Quer Voltar?[s/n]: ')
                     if option.lower().strip() == 's':
                         break
                 else:
                     print('O que deseja modificar?')
                     print('[1]Nome - [2]Preço unitário - [3]Quantidade - [4]Todos')
-                    while True:
-                        option = input('')
-                        if option.isdigit():
-                            option = int(option)
-                            if option < 1 or option > 4:
-                                ('Opção inválida')
-                                continue   
-                            break
-                        else:
-                            print('Opção inválida')
 
-                    new_name,new_price,new_amount = False,False,False
-                    if option == 1 or option == 4:
-                        new_name = input('Novo nome: ')
-                    if option == 2 or option == 4:
-                        new_price = input('Novo preço: ')
-                    if option == 3 or option == 4:
-                        new_amount = input('Nova quantidade')
-
-                    update_products(new_name,new_price,new_amount)
+                    update_products(product_id)
 
                     option = input('Quer alterar outro produto?[s/n]: ')
                     if option.lower().strip() == 'n':
                         break
                     
-
         option = input('Quer continuar gerenciando?[s/n]: ')
         if option.lower().strip() == 'n':
             break
 
-#onde será feita a venda de produtos
 def cashier(id, user):
+    '''onde será feita a venda de produtos'''
+
     logs.write('went to cashier function\n')
     products = create_product_list()
     print('caixa')
-   
-#criar uma lista com os produtos disponíveis e suas informações
+
+#CRUD---------------------------------------------------------------------------
+
+def create_products():
+    '''Função para criar produtos'''
+
+    print('insira os dados do produto')
+    while True:
+        product_id = input('ID: ')
+        products = create_product_list()
+        if product_id not in (i['id'] for i in products):
+            break
+        else:
+            print('id já está sendo usado')
+            
+    product_name = input('Nome: ')
+    product_price = input('Preço unitário: ')
+    product_amount = input('Quantidade: ')
+
+    with open('products.csv','a') as file:
+        file.write('\n')
+        file.write(f'{product_id},{product_name},{product_price},{product_amount}')
+
+    logs.write(f'create product {product_name} id:{product_id}')
+
+
+def update_products(product_id,new_name=False,new_price=False,new_amount=False):
+    '''função para atualizar dados. 
+    Todos estão com falso como padrão, assim só será modificado os valores que forem passados'''
+
+    option = while_option(1,4)
+
+    if option == 1 or option == 4:
+        new_name = input('Novo nome: ')
+    if option == 2 or option == 4:
+        new_price = input('Novo preço: ')
+    if option == 3 or option == 4:
+        new_amount = input('Nova quantidade')
+
+    print(product_id,new_name,new_price,new_amount)
+
+#utilities----------------------------------------------------------------------
+
 def create_product_list():
+    '''criar uma lista com os produtos disponíveis e suas informações'''
+
     products = []
     with open('products.csv') as file:
             reader = csv.DictReader(file)
@@ -183,14 +188,30 @@ def create_product_list():
     logs.write('Products list created\n')
     return products
 
+def while_option(minimum=False,maximum=False):
+    '''Escolher opção nos menus'''
+    option = 0
+    while True:
+        option = input('')
+        if option.isdigit():
+            option = int(option)
 
-'''função para atualizar dados
-Todos estão com falso como padrão, assim só será modificado os valores que forem passados'''
-def update_products(new_name=False,new_price=False,new_amount=False):
-    print(new_name,new_price,new_amount)
+            if minimum:
+                if option < minimum:
+                    print('Opção inválida')
+                    continue 
+            if maximum:
+                if option > maximum:
+                    print('Opção inválida')
+                    continue
+            break
+        else:
+            print('Opção inválida')
+    return option
 
-#função para sair do programa de forma segura
 def program_exit():
+    '''função para sair do programa de forma segura'''
+
     logs.write('program exit')
     logs.close()
     quit()
