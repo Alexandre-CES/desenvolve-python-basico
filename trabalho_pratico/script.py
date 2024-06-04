@@ -1,7 +1,20 @@
 import csv
+import os
 
 logs = open('logs.txt','w')
 
+#criar arquivos necessários se não existirem
+def create_files():
+    path = os.getcwd()
+    
+    if not os.path.exists(f'{path}/products.csv'):
+        with open('products.csv','w') as file:
+            file.write('id,name,price,amount')
+    
+    if not os.path.exists(f'{path}/users.csv'):
+        with open('users.csv','w') as file:
+            file.write('id,user,password,permition\n0,owner,00000,3')
+    
 #função para lógica de login
 def Login():
 
@@ -22,7 +35,7 @@ def Login():
         for i in range(len(users)):
             if users[i]['user'] == user_input and users[i]['password'] == password_input:
                 isLogged = True
-                logs.write(f'user {users[i]['id']} logged\n')
+                logs.write(f'user {users[i]["id"]} logged\n')
                 Main(users[i]['id'], user_input, int(users[i]['permition']))
                 break
            
@@ -118,22 +131,37 @@ def management(id, user):
                 products = create_product_list()
                 if product_id not in (i['id'] for i in products):
                     print('id não encontrado')
-                    option = input('Quer fazer outra coisa?[s/n]: ')
+                    option = input('Quer Voltar ao Menu principal?[s/n]: ')
                     if option.lower().strip() == 's':
                         break
                 else:
                     print('O que deseja modificar?')
-                    print('[1]Nome - [2]Preço unitário - [3]Quantidade')
+                    print('[1]Nome - [2]Preço unitário - [3]Quantidade - [4]Todos')
                     while True:
                         option = input('')
                         if option.isdigit():
                             option = int(option)
+                            if option < 1 or option > 4:
+                                ('Opção inválida')
+                                continue   
                             break
                         else:
                             print('Opção inválida')
+
+                    new_name,new_price,new_amount = False,False,False
+                    if option == 1 or option == 4:
+                        new_name = input('Novo nome: ')
+                    if option == 2 or option == 4:
+                        new_price = input('Novo preço: ')
+                    if option == 3 or option == 4:
+                        new_amount = input('Nova quantidade')
+
+                    update_products(new_name,new_price,new_amount)
+
+                    option = input('Quer alterar outro produto?[s/n]: ')
+                    if option.lower().strip() == 'n':
+                        break
                     
-                    if option == 1:
-                        pass
 
         option = input('Quer continuar gerenciando?[s/n]: ')
         if option.lower().strip() == 'n':
@@ -155,6 +183,12 @@ def create_product_list():
     logs.write('Products list created\n')
     return products
 
+
+'''função para atualizar dados
+Todos estão com falso como padrão, assim só será modificado os valores que forem passados'''
+def update_products(new_name=False,new_price=False,new_amount=False):
+    print(new_name,new_price,new_amount)
+
 #função para sair do programa de forma segura
 def program_exit():
     logs.write('program exit')
@@ -162,5 +196,6 @@ def program_exit():
     quit()
 
 if __name__ == '__main__':
+    create_files()
     Login()
     program_exit()
