@@ -7,16 +7,13 @@ def create_files():
     '''criar arquivos necessários se não existirem'''
 
     path = os.getcwd()
-    
     if not os.path.exists(f'{path}/products.csv'):
         with open('products.csv','w') as file:
             file.write('id,name,price,amount')
-    
     if not os.path.exists(f'{path}/users.csv'):
         with open('users.csv','w') as file:
             file.write('id,user,password,permition\n0,owner,00000,3')
     
-
 def Login():
     '''função para lógica de login'''
 
@@ -70,7 +67,6 @@ def Main(id, user, permition):
 
         print('')
 
-        #para não crashar se escrever algo que não for um número
         option = while_option(0,maximum)
 
         if option == 0:
@@ -107,23 +103,34 @@ def management(id, user):
         elif option == 2:
             while True:
                 #verificar se id existe
-                product_id = input('ID: ')
-                products = create_product_list()
-                if product_id not in (i['id'] for i in products):
-                    print('id não encontrado')
-                    option = input('Quer Voltar?[s/n]: ')
-                    if option.lower().strip() == 's':
-                        break
-                else:
+                product_id = input('Digite o ID do produto: ')
+                if verify_product_id(product_id):
                     print('O que deseja modificar?')
-                    print('[1]Nome - [2]Preço unitário - [3]Quantidade - [4]Todos')
-
+                    print('[0]Cancelar - [1]Nome - [2]Preço unitário - [3]Quantidade - [4]Todos')
+                    
                     update_products(product_id)
 
-                    option = input('Quer alterar outro produto?[s/n]: ')
-                    if option.lower().strip() == 'n':
-                        break
-                    
+                option = input('Quer alterar outro produto?[s/n]: ')
+                if option.lower().strip() == 'n':
+                    break
+
+        #deletar produto
+        elif option == 3:
+            while True:
+                #verificar se id existe
+                product_id = input('ID: ')
+                if verify_product_id(product_id):
+                    option = input('Tem certeza?[s/n]: ')
+                    if option.lower().strip() == 's':
+                        delete_products(product_id)    
+                    else:
+                        print('operação cancelada')
+
+                option = input('Quer alterar outro produto?[s/n]: ')
+                if option.lower().strip() == 'n':
+                    break
+            
+
         option = input('Quer continuar gerenciando?[s/n]: ')
         if option.lower().strip() == 'n':
             break
@@ -132,10 +139,10 @@ def cashier(id, user):
     '''onde será feita a venda de produtos'''
 
     logs.write('went to cashier function\n')
-    products = create_product_list()
+    products = read_product_list()
     print('caixa')
 
-#CRUD---------------------------------------------------------------------------
+#CRUD--------------------------------------------------------------------------------------------
 
 def create_products():
     '''Função para criar produtos'''
@@ -143,7 +150,7 @@ def create_products():
     print('insira os dados do produto')
     while True:
         product_id = input('ID: ')
-        products = create_product_list()
+        products = read_product_list()
         if product_id not in (i['id'] for i in products):
             break
         else:
@@ -159,25 +166,7 @@ def create_products():
 
     logs.write(f'create product {product_name} id:{product_id}')
 
-
-def update_products(product_id,new_name=False,new_price=False,new_amount=False):
-    '''função para atualizar dados. 
-    Todos estão com falso como padrão, assim só será modificado os valores que forem passados'''
-
-    option = while_option(1,4)
-
-    if option == 1 or option == 4:
-        new_name = input('Novo nome: ')
-    if option == 2 or option == 4:
-        new_price = input('Novo preço: ')
-    if option == 3 or option == 4:
-        new_amount = input('Nova quantidade')
-
-    print(product_id,new_name,new_price,new_amount)
-
-#utilities----------------------------------------------------------------------
-
-def create_product_list():
+def read_product_list():
     '''criar uma lista com os produtos disponíveis e suas informações'''
 
     products = []
@@ -188,8 +177,70 @@ def create_product_list():
     logs.write('Products list created\n')
     return products
 
+def update_products(product_id,new_name=False,new_price=False,new_amount=False):
+    '''função para atualizar dados. 
+    Todos estão com falso como padrão, assim só será modificado os valores que forem passados'''
+
+    #escolher o que quer trocar
+    option = while_option(0,4)
+    if option == 0:
+        return
+    if option == 1 or option == 4:
+        new_name = input('Novo nome: ')
+    if option == 2 or option == 4:
+        new_price = input('Novo preço: ')
+    if option == 3 or option == 4:
+        new_amount = input('Nova quantidade')
+
+    #pegar o index do produto
+    products = read_product_list()
+    i = 0
+    for product in products:
+        if product['id'] == product_id:
+            break
+        i += 1
+    
+    #renomear na lista
+    if new_name:
+        products[i]['name'] = new_name
+    if new_price:
+        products[i]['price'] = new_price
+    if new_amount:
+        products[i]['amount'] = new_amount
+
+    #atualizar arquivo
+    with open('products.csv','w') as file:
+        file.write('id,name,price,amount\n')
+        for product in products:
+            file.write(f'{product['id']},{product['name']},{product['price']},{product['amount']}\n')
+
+    logs.write(f'product {product_id} updated')
+
+def delete_products(product_id):
+    '''função para apagar produtos. '''
+
+    #pegar o index do produto
+    products = read_product_list()
+    i = 0
+    for product in products:
+        if product['id'] == product_id:
+            break
+        i += 1
+    
+    del(products[i])
+
+    #atualizar arquivo
+    with open('products.csv','w') as file:
+        file.write('id,name,price,amount\n')
+        for product in products:
+            file.write(f'{product['id']},{product['name']},{product['price']},{product['amount']}\n')
+
+    logs.write(f'product {product_id} deleted')
+
+#utilities-------------------------------------------------------------------------
+
 def while_option(minimum=False,maximum=False):
-    '''Escolher opção nos menus'''
+    '''Escolher opção nos menus, achei importante fazer isso para o programar não crashar se escolher uma opção inválida, como escrever letras ou símbolos'''
     option = 0
     while True:
         option = input('')
@@ -209,6 +260,19 @@ def while_option(minimum=False,maximum=False):
             print('Opção inválida')
     return option
 
+def verify_product_id(product_id):
+    while True:
+        products = read_product_list()
+        if product_id not in (i['id'] for i in products):
+            print('id não encontrado')
+            option = input('Quer Voltar?[s/n]: ')
+            if option.lower().strip() == 's':
+                return False
+            else:
+                continue
+        else:
+            return True
+
 def program_exit():
     '''função para sair do programa de forma segura'''
 
@@ -216,6 +280,7 @@ def program_exit():
     logs.close()
     quit()
 
+#program init----------------------------------------------------------------------
 if __name__ == '__main__':
     create_files()
     Login()
