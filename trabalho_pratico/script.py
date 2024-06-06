@@ -106,7 +106,7 @@ def management(id, user):
                     print('O que deseja modificar?')
                     print('[0]Cancelar - [1]Nome - [2]Preço unitário - [3]Quantidade - [4]Todos')
                     
-                    update_products(product_id)
+                    update_products_manager(product_id)
 
                 option = input('Quer alterar outro produto?[s/n]: ')
                 if option.lower().strip() == 'n':
@@ -156,21 +156,15 @@ def cashier(id, user):
                         print('Qual a quantidade?: ')
                         sell_amount = while_option(0)
                         
-                        #pegar índice de produto
-                        products = read_product_list()
-                        i = 0
-                        for product in products:
-                            if product['id'] == product_id:
-                                break
-                            i += 1
+                        ind, products = get_product_index(product_id)
                         
                         #ter certeza de existir a quantidade a ser vendida
-                        product_amount = products[i]['amount']
+                        product_amount = products[ind]['amount']
                         if sell_amount > int(product_amount):
                             print('Está tentando vender mais do que há no estoque')
                             continue
 
-                        product_price = products[i]['price']
+                        product_price = products[ind]['price']
 
                         #preço total da venda
                         sell_price = sell_amount * float(product_price)
@@ -178,7 +172,7 @@ def cashier(id, user):
                         #adicionar dados da compra do produto na lista
                         current_sell_product_list.append({
                             'id':product_id,
-                            'name':products[i]['name'],
+                            'name':products[ind]['name'],
                             'amount':sell_amount,
                             'sell_price':sell_price
                         })
@@ -187,10 +181,10 @@ def cashier(id, user):
                     
                     option = input('Quer digitar outro ID?[s/n]: ')
                     if option.lower().strip() == 'n':
-                        print(current_sell_product_list)
+                        update_amount(current_sell_product_list)
                         break
                 
-                logs.write('Products sold')
+                logs.write('Products sold!\n')
 
                 option = input('Quer realizar outra venda?[s/n]: ')
                 if option.lower().strip() == 'n':
@@ -200,25 +194,18 @@ def cashier(id, user):
         
 
 def update_amount(product_list):
-    '''Para dar update na quantidade dos produtos vendidos no caixa. Decidi separar da função de update do gerente para deixar o código mais claro'''
+    '''Para dar update na quantidade dos produtos vendidos no caixa. Decidi deixar separado para que o código fique mais claro'''
+    
+    products = read_product_list()
     for item in product_list:
         product_id = item['id']
 
-        products = read_product_list()
-        i = 0
-        for product in products:
-            if product['id'] == product_id:
-                break
-            i += 1
+        ind, tmp = get_product_index(product_id)
         
-        '''
-        if new_name:
-            products[i]['name'] = new_name
-        if new_price:
-            products[i]['price'] = new_price
-        if new_amount:
-            products[i]['amount'] = new_amount
-        '''
+        products[ind]['amount'] = int(products[ind]['amount']) - int(item['amount'])
+
+    update_products(products)
+    
 
 #CRUD--------------------------------------------------------------------------------------------
 
@@ -255,7 +242,17 @@ def read_product_list():
     logs.write('Products list created\n')
     return products
 
-def update_products(product_id,new_name=False,new_price=False,new_amount=False):
+def update_products(products):
+    '''Reescreve a lista de produtos para atualizar dados'''
+
+    with open('products.csv','w') as file:
+        file.write('id,name,price,amount\n')
+        for product in products:
+            file.write(f'{product["id"]},{product["name"]},{product["price"]},{product["amount"]}\n')
+    
+    logs.write('Products updated\n')
+
+def update_products_manager(product_id,new_name=False,new_price=False,new_amount=False):
     '''função para atualizar dados. 
     Todos estão com falso como padrão, assim só será modificado os valores que forem passados'''
 
@@ -270,50 +267,29 @@ def update_products(product_id,new_name=False,new_price=False,new_amount=False):
     if option == 3 or option == 4:
         new_amount = input('Nova quantidade: ')
 
-    #pegar o index do produto
-    products = read_product_list()
-    i = 0
-    for product in products:
-        if product['id'] == product_id:
-            break
-        i += 1
+    ind, products = get_product_index(product_id)
     
     #renomear na lista
     if new_name:
-        products[i]['name'] = new_name
+        products[ind]['name'] = new_name
     if new_price:
-        products[i]['price'] = new_price
+        products[ind]['price'] = new_price
     if new_amount:
-        products[i]['amount'] = new_amount
+        products[ind]['amount'] = new_amount
 
-    #atualizar arquivo
-    with open('products.csv','w') as file:
-        file.write('id,name,price,amount\n')
-        for product in products:
-            file.write(f'{product['id']},{product['name']},{product['price']},{product['amount']}\n')
-
-    logs.write(f'product {product_id} updated')
+    update_products(products)
 
 def delete_products(product_id):
     '''função para apagar produtos. '''
 
-    #pegar o index do produto
-    products = read_product_list()
-    i = 0
-    for product in products:
-        if product['id'] == product_id:
-            break
-        i += 1
+    ind, products = get_product_index(product_id)
     
-    del(products[i])
+    #deletar item
+    del(products[ind])
 
-    #atualizar arquivo
-    with open('products.csv','w') as file:
-        file.write('id,name,price,amount\n')
-        for product in products:
-            file.write(f'{product['id']},{product['name']},{product['price']},{product['amount']}\n')
+    update_products(products)
 
-    logs.write(f'product {product_id} deleted')
+    logs.write(f'product {product_id} deleted\n')
 
 #utilities-------------------------------------------------------------------------
 
@@ -345,13 +321,24 @@ def verify_product_id(product_id):
         if product_id not in (i['id'] for i in products):
             print('id não encontrado')
             option = input('Quer tentar novamente?[s/n]: ')
-            if option.lower().strip() == 's':
+            if option.lower().strip() == 'n':
                 return False
             else:
                 product_id = input('Digite o ID novamente: ')
                 continue
         else:
             return True
+
+def get_product_index(product_id):
+    '''Estava repetindo muito isso, então tranformei em função'''
+
+    products = read_product_list()
+    i = 0
+    for product in products:
+        if product['id'] == product_id:
+            break
+        i += 1
+    return i, products
 
 def program_exit():
     '''função para sair do programa de forma segura'''
