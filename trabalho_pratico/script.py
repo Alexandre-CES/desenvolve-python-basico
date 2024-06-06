@@ -77,7 +77,6 @@ def Main(id, user, permition):
             break
         elif option == 2:
             cashier(id, user)
-            break
         elif permition > 1 and option == 3:
             management(id, user)
         else:
@@ -89,8 +88,8 @@ def management(id, user):
     logs.write('went to management function\n')
 
     while True:
-        print('O que deseja fazer?')
-        print('[0]Voltar - [1]Criar - [2]Atualizar - [3]Deletar')
+        print('O que deseja fazer?');print('')
+        print('[0]Voltar - [1]Criar - [2]Atualizar - [3]Deletar');print('')
 
         option = while_option(0,3)
         
@@ -102,7 +101,6 @@ def management(id, user):
         #modificar produto
         elif option == 2:
             while True:
-                #verificar se id existe
                 product_id = input('Digite o ID do produto: ')
                 if verify_product_id(product_id):
                     print('O que deseja modificar?')
@@ -117,7 +115,6 @@ def management(id, user):
         #deletar produto
         elif option == 3:
             while True:
-                #verificar se id existe
                 product_id = input('ID: ')
                 if verify_product_id(product_id):
                     option = input('Tem certeza?[s/n]: ')
@@ -139,8 +136,89 @@ def cashier(id, user):
     '''onde será feita a venda de produtos'''
 
     logs.write('went to cashier function\n')
-    products = read_product_list()
-    print('caixa')
+    print('---caixa iniciado---')
+
+    while True:
+        print('O que deseja fazer?');print('')
+        print('[0]Voltar - [1]Realizar venda');print('')
+
+        option = while_option(0,1)
+        
+        if option == 0:
+            return
+        elif option == 1:
+            while True:
+                current_sell_product_list = []
+            
+                while True:
+                    product_id = input('ID do produto: ')
+                    if verify_product_id(product_id):
+                        print('Qual a quantidade?: ')
+                        sell_amount = while_option(0)
+                        
+                        #pegar índice de produto
+                        products = read_product_list()
+                        i = 0
+                        for product in products:
+                            if product['id'] == product_id:
+                                break
+                            i += 1
+                        
+                        #ter certeza de existir a quantidade a ser vendida
+                        product_amount = products[i]['amount']
+                        if sell_amount > int(product_amount):
+                            print('Está tentando vender mais do que há no estoque')
+                            continue
+
+                        product_price = products[i]['price']
+
+                        #preço total da venda
+                        sell_price = sell_amount * float(product_price)
+                        
+                        #adicionar dados da compra do produto na lista
+                        current_sell_product_list.append({
+                            'id':product_id,
+                            'name':products[i]['name'],
+                            'amount':sell_amount,
+                            'sell_price':sell_price
+                        })
+
+                    logs.write(f'New product added to the list: {current_sell_product_list}')
+                    
+                    option = input('Quer digitar outro ID?[s/n]: ')
+                    if option.lower().strip() == 'n':
+                        print(current_sell_product_list)
+                        break
+                
+                logs.write('Products sold')
+
+                option = input('Quer realizar outra venda?[s/n]: ')
+                if option.lower().strip() == 'n':
+                    break
+        else:
+            print('Opção inválida')
+        
+
+def update_amount(product_list):
+    '''Para dar update na quantidade dos produtos vendidos no caixa. Decidi separar da função de update do gerente para deixar o código mais claro'''
+    for item in product_list:
+        product_id = item['id']
+
+        products = read_product_list()
+        i = 0
+        for product in products:
+            if product['id'] == product_id:
+                break
+            i += 1
+        
+        '''
+        if new_name:
+            products[i]['name'] = new_name
+        if new_price:
+            products[i]['price'] = new_price
+        if new_amount:
+            products[i]['amount'] = new_amount
+        '''
 
 #CRUD--------------------------------------------------------------------------------------------
 
@@ -164,7 +242,7 @@ def create_products():
         file.write('\n')
         file.write(f'{product_id},{product_name},{product_price},{product_amount}')
 
-    logs.write(f'create product {product_name} id:{product_id}')
+    logs.write(f'created product {product_name} id:{product_id}\n')
 
 def read_product_list():
     '''criar uma lista com os produtos disponíveis e suas informações'''
@@ -190,7 +268,7 @@ def update_products(product_id,new_name=False,new_price=False,new_amount=False):
     if option == 2 or option == 4:
         new_price = input('Novo preço: ')
     if option == 3 or option == 4:
-        new_amount = input('Nova quantidade')
+        new_amount = input('Nova quantidade: ')
 
     #pegar o index do produto
     products = read_product_list()
@@ -261,14 +339,16 @@ def while_option(minimum=False,maximum=False):
     return option
 
 def verify_product_id(product_id):
+    '''Verifica se id existe'''
     while True:
         products = read_product_list()
         if product_id not in (i['id'] for i in products):
             print('id não encontrado')
-            option = input('Quer Voltar?[s/n]: ')
+            option = input('Quer tentar novamente?[s/n]: ')
             if option.lower().strip() == 's':
                 return False
             else:
+                product_id = input('Digite o ID novamente: ')
                 continue
         else:
             return True
