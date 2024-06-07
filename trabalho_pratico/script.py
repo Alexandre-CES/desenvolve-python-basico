@@ -1,6 +1,8 @@
 import csv
 import os
 
+#Muitas opções tratam qualquer coisa que não for "n" como sim, preferi fazer assim para agilizar, assim você pode só apertar enter para confirmar, se for negar, digita "n"
+
 logs = open('logs.txt','w')
 
 def create_files():
@@ -127,7 +129,6 @@ def management(id, user):
                 if option.lower().strip() == 'n':
                     break
             
-
         option = input('Quer continuar gerenciando?[s/n]: ')
         if option.lower().strip() == 'n':
             break
@@ -148,44 +149,90 @@ def cashier(id, user):
             return
         elif option == 1:
             while True:
+                print('---------------------------------------')
+                logs.write(f'\n({id}){user} started a sale\n')
                 current_sell_product_list = []
-            
+                total = 0
+                
                 while True:
+                    product_repeated = False
+                    print('')
                     product_id = input('ID do produto: ')
-                    if verify_product_id(product_id):
-                        print('Qual a quantidade?: ')
-                        sell_amount = while_option(0)
-                        
-                        ind, products = get_product_index(product_id)
-                        
-                        #ter certeza de existir a quantidade a ser vendida
-                        product_amount = products[ind]['amount']
-                        if sell_amount > int(product_amount):
-                            print('Está tentando vender mais do que há no estoque')
-                            continue
-
-                        product_price = products[ind]['price']
-
-                        #preço total da venda
-                        sell_price = sell_amount * float(product_price)
-                        
-                        #adicionar dados da compra do produto na lista
-                        current_sell_product_list.append({
-                            'id':product_id,
-                            'name':products[ind]['name'],
-                            'amount':sell_amount,
-                            'sell_price':sell_price
-                        })
-
-                    logs.write(f'New product added to the list: {current_sell_product_list}')
                     
+                    #se digitar um produto que já está na lista, pode mudar sua quantidade
+                    ind = 0
+                    for item in current_sell_product_list:
+                        if item['id'] == product_id:
+                            print('produto já está na lista')
+                            product_repeated = True
+                            option = input('quer mudar a quantidade?[s/n]: ')
+                            if option.lower().strip() != 'n':
+                                ind, products = get_product_index(product_id)
+                                product_amount = products[ind]['amount']
+                                
+                                print(f'Digite a nova quantidade: ', end='')
+                                new_amount = while_option(0)
+                                
+                                if new_amount > int(product_amount):
+                                    print('Quantidade excede o estoque disponível')
+                                else:
+                                    item['amount'] = new_amount
+                                    item['sell_price'] = new_amount * float(products[ind]['price'])
+                                    logs.write('Product amount updated\n')
+                                break
+                            else:
+                                option = input('quer removê-lo da lista?: ')
+                                if option.lower().strip() == 's': #deixei esse como sim para evitar apagar sem querer
+                                    logs.write(f'product {item["id"]} removed from list')
+                                    del(current_sell_product_list[ind])
+
+                                break
+                        ind += 1  
+
+                    if not product_repeated:
+                        if verify_product_id(product_id):
+                            print('Qual a quantidade?: ', end='')
+                            sell_amount = while_option(0)
+                            
+                            ind, products = get_product_index(product_id)
+                            
+                            #ter certeza de existir a quantidade a ser vendida
+                            product_amount = products[ind]['amount']
+                            if sell_amount > int(product_amount):
+                                print('Está tentando vender mais do que há no estoque')
+                                continue
+
+                            product_price = products[ind]['price']
+
+                            #preço total do produto atual
+                            sell_price = sell_amount * float(product_price)
+                            
+                            #adicionar dados da compra do produto na lista
+                            current_sell_product_list.append({
+                                'id':product_id,
+                                'name':products[ind]['name'],
+                                'amount':sell_amount,
+                                'sell_price':sell_price
+                            })
+
+                            total += sell_price
+
+                            logs.write('New product added to the list\n')
+                    
+                    #ver se quer adicionar mais coisas antes de concluir venda
                     option = input('Quer digitar outro ID?[s/n]: ')
                     if option.lower().strip() == 'n':
-                        update_amount(current_sell_product_list)
+                        option = input('Concluir venda?: ')
+                        if option.lower().strip() == 'n': # o mesmo aqui
+                            print('Operação cancelada')
+                            logs.write('Operation canceled\n')
+                        else:
+                            update_amount(current_sell_product_list)
                         break
                 
-                logs.write('Products sold!\n')
+                logs.write(f'Products sold by ({id}){user}! Total: {total}\n\n')
 
+                #caso a pessoas for sair
                 option = input('Quer realizar outra venda?[s/n]: ')
                 if option.lower().strip() == 'n':
                     break
@@ -200,7 +247,7 @@ def update_amount(product_list):
     for item in product_list:
         product_id = item['id']
 
-        ind, tmp = get_product_index(product_id)
+        ind = get_product_index(product_id, False)
         
         products[ind]['amount'] = int(products[ind]['amount']) - int(item['amount'])
 
@@ -213,6 +260,8 @@ def create_products():
     '''Função para criar produtos'''
 
     print('insira os dados do produto')
+
+    #verifica se id desejado já está em uso
     while True:
         product_id = input('ID: ')
         products = read_product_list()
@@ -220,11 +269,12 @@ def create_products():
             break
         else:
             print('id já está sendo usado')
-            
+        
     product_name = input('Nome: ')
     product_price = input('Preço unitário: ')
     product_amount = input('Quantidade: ')
 
+    #adicionar produto no arquivo
     with open('products.csv','a') as file:
         file.write('\n')
         file.write(f'{product_id},{product_name},{product_price},{product_amount}')
@@ -236,7 +286,7 @@ def read_product_list():
 
     products = []
     with open('products.csv') as file:
-            reader = csv.DictReader(file)
+            reader = csv.DictReader(file) #para usar o header como chave
             for row in reader:
                 products.append(row)
     logs.write('Products list created\n')
@@ -329,7 +379,7 @@ def verify_product_id(product_id):
         else:
             return True
 
-def get_product_index(product_id):
+def get_product_index(product_id, create_list=True):
     '''Estava repetindo muito isso, então tranformei em função'''
 
     products = read_product_list()
@@ -338,7 +388,10 @@ def get_product_index(product_id):
         if product['id'] == product_id:
             break
         i += 1
-    return i, products
+    if create_list:
+        return i, products
+    else:
+        return i
 
 def program_exit():
     '''função para sair do programa de forma segura'''
