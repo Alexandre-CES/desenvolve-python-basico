@@ -80,13 +80,13 @@ def Main(id, user, permition):
         elif option == 2:
             cashier(id, user)
         elif permition > 1 and option == 3:
-            management(id, user)
+            management(id, user, permition)
         else:
             print('Opção inválida')
 
 #Gerenciar----------------------------------------------------
 
-def management(id, user):
+def management(id, user, permition):
     '''onde dados dos produtos podem ser alterados'''
 
     logs.write('went to management function\n')
@@ -157,13 +157,13 @@ def management(id, user):
                         user_id = input('Digite o ID do usuário: ');print('')
                         if verify_user_id(user_id):
 
-                            ind1, ind2, users = get_users_index(id, user_id)
+                            ind, users = get_users_index(user_id)
 
-                            if int(users[ind1]['permition']) < int(users[ind2]['permition']):
+                            if permition < int(users[ind]['permition']):
                                 print('Você não tem permissão para isso')
                             
                             else:
-                                print(f'O que deseja modificar do usuário {users[ind2]['user']}?');print('')
+                                print(f'O que deseja modificar do usuário {users[ind]["user"]}?');print('')
                                 print('[0]Voltar - [1]Usuário - [2]Senha - [3]Permissão - [4]Todos');print('')
                             
                                 update_user_manager(user_id)
@@ -347,18 +347,39 @@ def update_amount_cashier(product_list):
 
     update_products(products)
 
-#CRUD--------------------------------------------------------------------------------------------
+#CRUD------------------------------------------------------------------------------------------
 
 def create_users():
     print('Insira os dados do usuário')
     #verifica se id desejado já está em uso
     while True:
         user_id = input('ID: ')
+        if user_id.strip() == '':
+            continue
         users = read_user_list()
         if user_id not in (i['id'] for i in users):
             break
         else:
             print('id já está sendo usado')
+    
+    while True:
+        user_user = input('Usuário: ')
+        user_password = input('Senha: ')
+
+        if user_user != '' and user_password != '':
+            break
+        else:
+            print('Dados inválidos')
+
+    print('Nível de permissão: ', end='')
+    user_permition = while_option(0,3)
+
+    #adicionar usuário no arquivo
+    with open('users.csv','a') as file:
+        file.write('\n')
+        file.write(f'{user_id},{user_user},{user_password},{user_permition}')
+
+    logs.write(f'created user {user_user} id:{user_id}\n')
 
 def create_products():
     '''Função para criar produtos'''
@@ -368,15 +389,24 @@ def create_products():
     #verifica se id desejado já está em uso
     while True:
         product_id = input('ID: ')
+        if product_id.strip() == '':
+            continue
         products = read_product_list()
         if product_id not in (i['id'] for i in products):
             break
         else:
             print('id já está sendo usado')
         
-    product_name = input('Nome: ')
-    product_price = input('Preço unitário: ')
-    product_amount = input('Quantidade: ')
+    while True:
+        product_name = input('Nome: ')
+        if product_name.strip() != '':
+            break
+
+    print('Preço unitário: ')
+    product_price = while_option(0,False,True)
+
+    print('Quantidade: ', end='')
+    product_amount = while_option(0)
 
     #adicionar produto no arquivo
     with open('products.csv','a') as file:
@@ -440,13 +470,16 @@ def delete_products(product_id):
 
 #utilities-------------------------------------------------------------------------
 
-def while_option(minimum=False,maximum=False):
+def while_option(minimum=False,maximum=False,isFloat=False):
     '''Escolher opção nos menus, achei importante fazer isso para o programar não crashar se escolher uma opção inválida, como escrever letras ou símbolos'''
     option = 0
     while True:
         option = input('')
-        if option.isdigit():
-            option = int(option)
+        try:
+            if not isFloat:
+                option = int(option)
+            else:
+                option = float(option)
 
             if minimum:
                 if option < minimum:
@@ -457,7 +490,7 @@ def while_option(minimum=False,maximum=False):
                     print('Opção inválida')
                     continue
             break
-        else:
+        except ValueError:
             print('Opção inválida')
     return option
 
@@ -491,26 +524,17 @@ def verify_product_id(product_id):
         else:
             return True
 
-def get_users_index(user1_id, user2_id = False):
+def get_users_index(user_id):
     '''Pegar o índice de usuário na lista'''
 
     users = read_user_list()
-    i1 = 0
+    i = 0
     for user in users:
-        if user['id'] == user1_id:
+        if user['id'] == user_id:
             break
-        i1 += 1
+        i += 1
 
-    if not user2_id:
-        return i1, users
-    else:
-        i2 = 0
-        for user in users:
-            if user['id'] == user2_id:
-                break
-            i2 += 1
-        
-        return i1, i2, users
+    return i, users
 
 def get_product_index(product_id, create_list=True):
     '''Pegar o índice de produto na lista'''
