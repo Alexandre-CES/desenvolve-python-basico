@@ -54,22 +54,26 @@ def Login():
 def Main(id, user, permition):
     '''onde o usuário escolherá o que fazer'''
 
-    print(f'Bem-vindo(a) {user}!')
+    print('-------------------------');print('')
+    print(f'Bem-vindo(a) {user}!');print('')
 
     #só vai sair quando o usuário pedir
     while True:
-        maximum = 2
+        maximum = 1
         print('O que você gostaria de fazer?');print('')
-        print('[0]sair - [1]trocar usuário - [2]caixa',end=' ')
+        print('[0]sair - [1]trocar usuário',end=' ')
 
         #permissões para pessoas com cargo maior
-        if permition > 1:
+        if permition >= 1:
+            maximum = 2
+            print(' - [2]Caixa', end='')
+        if permition >= 2:
             maximum = 3
             print(' - [3]Gerenciar', end='')
 
         print('')
 
-        option = while_option(0,maximum)
+        option = while_option(0,maximum);print('')
 
         if option == 0:
             program_exit()
@@ -77,12 +81,12 @@ def Main(id, user, permition):
             logs.write(f'user {id} left')
             Login()
             break
-        elif option == 2:
+        elif permition >= 1 and option == 2:
             cashier(id, user)
-        elif permition > 1 and option == 3:
+        elif permition >= 2 and option == 3:
             management(id, user, permition)
         else:
-            print('Opção inválida')
+            print('Opção inválida');print('')
 
 #Gerenciar----------------------------------------------------
 
@@ -92,18 +96,20 @@ def management(id, user, permition):
     logs.write('went to management function\n')
 
     while True:
-        print('O que deseja gerenciar?');print('')
-        print('[0]Voltar - [1]Gerenciar produtos - [2]Gerenciar usuários');print('')
+        print('--------------------------------')
+        print(f'O que deseja gerenciar {user}?');print('')
+        print('[0]Voltar - [1]Gerenciar produtos - [2]Gerenciar usuários')
 
-        option = while_option(0,3)
+        option = while_option(0,3);print('')
         
         if option == 0:
             break
         #gerenciar produtos
         elif option == 1:
             while True:
-                print('O que deseja fazer?');print('')
-                print('[0]Voltar - [1]Criar produto - [2]Modificar produto - [3]Deletar produto');print('')
+                print('----------------------------------')
+                print('Qual modificação fará em produtos?');print('')
+                print('[0]Voltar - [1]Criar produto - [2]Modificar produto - [3]Deletar produto')
 
                 option = while_option(0,3);print('')
 
@@ -111,9 +117,11 @@ def management(id, user, permition):
                     break
                 #adicionar produto
                 elif option == 1:
+                    print('Criando produto:')
                     create_products()
                 #modificar produto
                 elif option == 2:
+                    print('Modificando produto: ')
                     while True:
                         product_id = input('Digite o ID do produto: ');print('')
                         if verify_product_id(product_id):
@@ -122,28 +130,30 @@ def management(id, user, permition):
 
                             update_product_manager(product_id)
 
-                        option = input('Quer alterar outro produto?[s/n]: ')
+                        option = input('Quer alterar outro produto?[s/n]: ');print('')
                         if option.lower().strip() == 'n':
                             break
 
                 #deletar produto
                 elif option == 3:
                     while True:
-                        product_id = input('ID: ')
+                        print('Deletando produto: ')
+                        product_id = input('Digite o ID do produto que deseja deletar: ')
                         if verify_product_id(product_id):
                             option = input('Tem certeza?[s/n]: ')
                             if option.lower().strip() == 's':
-                                delete_products(product_id)    
+                                delete_product(product_id)    
                             else:
                                 print('operação cancelada')
 
-                        option = input('Quer alterar outro produto?[s/n]: ')
+                        option = input('Quer deletar outro produto?[s/n]: ');print('')
                         if option.lower().strip() == 'n':
                             break
         #Gerenciar usuários
         elif option == 2:
             while True:
-                print('O que deseja fazer?');print('')
+                print('---------------------------------')
+                print('Que modificação fará em usuários?');print('')
                 print('[0]Voltar - [1]Adicionar usuários - [2]Modificar dados de usuário - [3]Deletar usuário')
 
                 option = while_option(0,3);print('')
@@ -151,8 +161,10 @@ def management(id, user, permition):
                 if option == 0:
                     break
                 elif option == 1:
+                    print('Adicionando usuário: ')
                     create_users()
                 elif option == 2:
+                    print('Modificando usuário: ')
                     while True:
                         user_id = input('Digite o ID do usuário: ');print('')
                         if verify_user_id(user_id):
@@ -168,7 +180,22 @@ def management(id, user, permition):
                             
                                 update_user_manager(user_id)
 
-                        option = input('Quer alterar outro usuário?[s/n]: ')
+                        option = input('Quer alterar outro usuário?[s/n]: ');print('')
+                        if option.lower().strip() == 'n':
+                            break
+
+                elif option == 3:     
+                    while True:
+                        print('Deletando usuário: ')
+                        user_id = input('Digite o ID do usuário que deseja deletar: ')
+                        if verify_product_id(user_id):
+                            option = input('Tem certeza?[s/n]: ')
+                            if option.lower().strip() == 's':
+                                delete_user(user_id)    
+                            else:
+                                print('operação cancelada')
+
+                        option = input('Quer deletar outro usuário?[s/n]: ');print('')
                         if option.lower().strip() == 'n':
                             break
 
@@ -197,7 +224,7 @@ def update_user_manager(user_id,new_user=False,new_password=False,new_permition=
     if new_permition:
         users[ind]['permition'] = new_permition
 
-    update_users(users)
+    update_users(users);print('')
 
 def update_product_manager(product_id,new_name=False,new_price=False,new_amount=False):
     '''função para modificar dados de produtos na lista. 
@@ -441,8 +468,10 @@ def update_users(users):
 
     with open('users.csv','w') as file:
         file.write('id,user,password,permition\n')
-        for user in users:
-            file.write(f'{user["id"]},{user["user"]},{user["password"]},{user["permition"]}\n')
+        for i in range(len(users)):
+            file.write(f'{users[i]["id"]},{users[i]["user"]},{users[i]["password"]},{users[i]["permition"]}')
+            if i < len(users) - 1:
+                file.write('\n')
     
     logs.write('Products updated\n')
 
@@ -451,12 +480,14 @@ def update_products(products):
 
     with open('products.csv','w') as file:
         file.write('id,name,price,amount\n')
-        for product in products:
-            file.write(f'{product["id"]},{product["name"]},{product["price"]},{product["amount"]}\n')
+        for i in range(len(products)):
+            file.write(f'{products[i]["id"]},{products[i]["name"]},{products[i]["price"]},{products[i]["amount"]}\n')
+            if i < len(products) - 1:
+                file.write('\n')
     
     logs.write('Products updated\n')
 
-def delete_products(product_id):
+def delete_product(product_id):
     '''função para apagar produtos. '''
 
     ind, products = get_product_index(product_id)
@@ -467,6 +498,18 @@ def delete_products(product_id):
     update_products(products)
 
     logs.write(f'product {product_id} deleted\n')
+
+def delete_user(user_id):
+    '''função para apagar usuário. '''
+
+    ind, users = get_users_index(user_id)
+    
+    #deletar item
+    del(users[ind])
+    print(users)
+    update_users(users)
+
+    logs.write(f'user {user_id} deleted\n')
 
 #utilities-------------------------------------------------------------------------
 
@@ -483,11 +526,11 @@ def while_option(minimum=False,maximum=False,isFloat=False):
 
             if minimum:
                 if option < minimum:
-                    print('Opção inválida')
+                    print('Opção inválida');print('')
                     continue 
             if maximum:
                 if option > maximum:
-                    print('Opção inválida')
+                    print('Opção inválida');print('')
                     continue
             break
         except ValueError:
