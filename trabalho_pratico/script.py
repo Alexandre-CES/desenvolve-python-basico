@@ -15,7 +15,7 @@ def create_files():
             file.write('id,name,price,amount')
     if not os.path.exists(f'{path}/users.csv'):
         with open('users.csv','w') as file:
-            file.write('id,user,password,permition\n0,owner,00000,3')
+            file.write('id,user,password,permission\n0,owner,00000,3')
     
 def Login():
     '''função para lógica de login'''
@@ -38,21 +38,20 @@ def Login():
             if users[i]['user'] == user_input and users[i]['password'] == password_input:
                 isLogged = True
                 logs.write(f'user {users[i]["id"]} logged\n')
-                Main(users[i]['id'], user_input, int(users[i]['permition']))
+                Main(users[i]['id'], user_input, int(users[i]['permission']))
                 break
            
-            #se apos checar tudo não achar
             if i >= len(users) - 1 and not isLogged:
                 print('credenciais inválidas')
                 break
         
-        #para sair se não lembrar da conta
+        #Opção de sair
         if not isLogged:
             option = input('Quer sair? [s/n]: ')
             if option.lower().strip() == 's':
                 program_exit()
         
-def Main(id, user, permition):
+def Main(id, user, permission):
     '''onde o usuário escolherá o que fazer'''
 
     print('-------------------------');print('')
@@ -65,10 +64,10 @@ def Main(id, user, permition):
         print('[0]sair - [1]trocar usuário - [2]Lista de produtos',end=' ')
 
         #permissões para pessoas com cargo maior
-        if permition >= 1:
+        if permission >= 1:
             maximum = 3
             print(' - [3]Caixa', end='')
-        if permition >= 2:
+        if permission >= 2:
             maximum = 4
             print(' - [4]Gerenciar', end='')
 
@@ -90,16 +89,16 @@ def Main(id, user, permition):
                 print(f'{product["name"]} / R${product["price"]}')
             input('.')
 
-        elif permition >= 1 and option == 3:
+        elif permission >= 1 and option == 3:
             cashier(id, user)
-        elif permition >= 2 and option == 4:
-            management(id, user, permition)
+        elif permission >= 2 and option == 4:
+            management(id, user, permission)
         else:
             print('Opção inválida');print('')
 
 #Gerenciar----------------------------------------------------
 
-def management(id, user, permition):
+def management(id, user, permission):
     '''onde dados dos produtos podem ser alterados'''
 
     logs.write('went to management function\n')
@@ -180,7 +179,7 @@ def management(id, user, permition):
 
                             ind, users = get_users_index(user_id)
 
-                            if permition < int(users[ind]['permition']):
+                            if permission < int(users[ind]['permission']):
                                 print('Você não tem permissão para isso')
                             
                             else:
@@ -208,7 +207,7 @@ def management(id, user, permition):
                         if option.lower().strip() == 'n':
                             break
 
-def update_user_manager(user_id,new_user=False,new_password=False,new_permition=False):
+def update_user_manager(user_id,new_user=False,new_password=False,new_permission=False):
     '''função para modificar dados de usuários na lista. 
     Todos estão com falso como padrão, assim só será modificado os valores que forem passados'''
 
@@ -221,7 +220,7 @@ def update_user_manager(user_id,new_user=False,new_password=False,new_permition=
     if option == 2 or option == 4:
         new_password = input('Nova senha: ')
     if option == 3 or option == 4:
-        new_permition = input('Novo nível de permissão: ')
+        new_permission = input('Novo nível de permissão: ')
 
     ind, users = get_users_index(user_id)
     
@@ -230,8 +229,8 @@ def update_user_manager(user_id,new_user=False,new_password=False,new_permition=
         users[ind]['user'] = new_user
     if new_password:
         users[ind]['password'] = new_password
-    if new_permition:
-        users[ind]['permition'] = new_permition
+    if new_permission:
+        users[ind]['permission'] = new_permission
 
     update_users(users);print('')
 
@@ -411,12 +410,12 @@ def create_users():
             print('Dados inválidos')
 
     print('Nível de permissão: ', end='')
-    user_permition = while_option(0,3)
+    user_permission = while_option(0,3)
 
     #adicionar usuário no arquivo
     with open('users.csv','a') as file:
         file.write('\n')
-        file.write(f'{user_id},{user_user},{user_password},{user_permition}')
+        file.write(f'{user_id},{user_user},{user_password},{user_permission}')
 
     logs.write(f'created user {user_user} id:{user_id}\n')
 
@@ -479,9 +478,9 @@ def update_users(users):
     '''Reescreve a lista de usuários para atualizar dados'''
 
     with open('users.csv','w') as file:
-        file.write('id,user,password,permition\n')
+        file.write('id,user,password,permission\n')
         for i in range(len(users)):
-            file.write(f'{users[i]["id"]},{users[i]["user"]},{users[i]["password"]},{users[i]["permition"]}')
+            file.write(f'{users[i]["id"]},{users[i]["user"]},{users[i]["password"]},{users[i]["permission"]}')
             if i < len(users) - 1:
                 file.write('\n')
     

@@ -1,0 +1,36 @@
+----------------------------------------------------------------------------------------------
+INTRODUÇÃO:
+----------------------------------------------------------------------------------------------
+
+O sistema foi feito para empresas que trabalham com a venda de produtos como supermercados, por exemplo. Está mais focado no gerenciamento de produtos e no caixa, mas clientes podem ver a lista de produtos e seus respectivos preços
+
+----------------------------------------------------------------------------------------------
+IMPLEMENTAÇÃO:
+----------------------------------------------------------------------------------------------
+
+-Armazenamento de informações:
+    Decidi fazer o armazenamento dos dados em arquivos .csv, para que funcione em conjunto com planilhas, em forma de tabela. Logo ao iniciar o programa, esses arquivos, caso não existirem, serão criados na pasta em que o código está, com os headers já são escritos. Os arquviso são:
+
+    *users.csv:
+    é nesse arquivos em que os dados dos usuários serão armazenados, sendo eles id: para facilitar sua identificação, user: nome do usuário, password: senha do usuário e permission: nível de permissão, quanto maior, mais coisas podem ser feitas(0=cliente, 3=dono). Ao iniciar o programa pela primeira vez, se você não tiver o arquivo, ele será gerado automaticamente com os headers e um usuário pronto "owner" com senha "00000", a partir dele, todos os outros podem ser criados, e somente pessoas com o mesmo nível podem alterá-lo.
+
+    *products.csv:
+    é nesse arquivo em que os dados dos produtos serão armazenados, sendo eles id: para facilitar sua identificação, name: o nome do produto, price: preço unitário e amount: quantidade atual do produto. Também será gerado automaticamente, mas apenas com os headers, precisando de pessoas de cargo 2(gerente) ou 3(dono) para adicionar produtos 
+
+    Para usar as informações no programa, estou as armazenando em dicionários dentro de listas, onde cada chave é um header dos .csv 
+
+-Logs:
+    Coloquei um arquivo "logs.txt" para mostrar o que o usuário fez enquanto o programa estava rodando, podendo ver melhor como é a movimentação do código
+
+-Partes do programa:
+
+    *Login:
+    Ao entrar, o usuário irá para a sessão de login, onde há um elemento do CRUD: "read". O programa irá ler o arquivo "users" e armazenar em uma lista de dicionários, onde as chaves serão cada header. Se escrever corretamente um usuário e senha que estão em um mesmo índice, o login é bem-sucedido, o levando para a função principal, junto com as informações: id, user e permission.
+
+    *Main:
+    Aqui, além das opções de voltar e trocar de usuário, você vai poder escolher o tipo de coisa que vai fazer. Algumas opções só aparecerão se tiver um nível de permissão suficiente, sendo elas: gerenciar(2+), trabalhar no caixa(1+) ou olhar lista de produtos(0+)
+
+
+----------------------------------------------------------------------------------------------
+CONCLUSÃO:
+----------------------------------------------------------------------------------------------
