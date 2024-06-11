@@ -8,6 +8,7 @@ logs = open('logs.txt','w')
 def create_files():
     '''criar arquivos necessários se não existirem'''
 
+    #automaticamente criará o usuário owner, que pode gerar produtos e outros usuários
     path = os.getcwd()
     if not os.path.exists(f'{path}/products.csv'):
         with open('products.csv','w') as file:
@@ -59,17 +60,17 @@ def Main(id, user, permition):
 
     #só vai sair quando o usuário pedir
     while True:
-        maximum = 1
+        maximum = 2
         print('O que você gostaria de fazer?');print('')
-        print('[0]sair - [1]trocar usuário',end=' ')
+        print('[0]sair - [1]trocar usuário - [2]Lista de produtos',end=' ')
 
         #permissões para pessoas com cargo maior
         if permition >= 1:
-            maximum = 2
-            print(' - [2]Caixa', end='')
-        if permition >= 2:
             maximum = 3
-            print(' - [3]Gerenciar', end='')
+            print(' - [3]Caixa', end='')
+        if permition >= 2:
+            maximum = 4
+            print(' - [4]Gerenciar', end='')
 
         print('')
 
@@ -78,12 +79,20 @@ def Main(id, user, permition):
         if option == 0:
             program_exit()
         elif option == 1:
-            logs.write(f'user {id} left')
+            logs.write(f'user {id} left\n')
             Login()
-            break
-        elif permition >= 1 and option == 2:
+
+        elif option == 2:
+            print('gerando lista de produtos:')
+            print('-----------------------')
+            products = read_product_list()
+            for product in products:
+                print(f'{product["name"]} / R${product["price"]}')
+            input('.')
+
+        elif permition >= 1 and option == 3:
             cashier(id, user)
-        elif permition >= 2 and option == 3:
+        elif permition >= 2 and option == 4:
             management(id, user, permition)
         else:
             print('Opção inválida');print('')
@@ -230,7 +239,6 @@ def update_product_manager(product_id,new_name=False,new_price=False,new_amount=
     '''função para modificar dados de produtos na lista. 
     Todos estão com falso como padrão, assim só será modificado os valores que forem passados'''
 
-    #escolher o que quer trocar
     option = while_option(0,4)
     if option == 0:
         return
@@ -270,18 +278,21 @@ def cashier(id, user):
         if option == 0:
             return
         elif option == 1:
+
+            #cada venda inicia um looping
             while True:
                 print('---------------------------------------')
                 logs.write(f'\n({id}){user} started a sale\n')
-                current_sell_product_list = []
+                current_sell_product_list = [] #lista de compras
                 total = 0
                 
+                #loop até os dados estarem corretos ou o usuário decidir cancelar
                 while True:
                     product_repeated = False
                     print('')
                     product_id = input('ID do produto: ')
                     
-                    #se digitar um produto que já está na lista, pode mudar sua quantidade
+                    #se digitar um produto que já está na lista, pode mudar sua quantidade ou tirá-lo
                     ind = 0
                     for item in current_sell_product_list:
                         if item['id'] == product_id:
@@ -311,6 +322,7 @@ def cashier(id, user):
                                 break
                         ind += 1  
 
+                    #só adicionará na lista se ele não estiver nela
                     if not product_repeated:
                         if verify_product_id(product_id):
                             print('Qual a quantidade?: ', end='')
