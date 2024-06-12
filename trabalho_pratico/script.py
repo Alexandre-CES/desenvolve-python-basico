@@ -1,14 +1,10 @@
-import csv
-import os
-
-#Muitas opções tratam qualquer coisa que não for "n" como sim, preferi fazer assim para agilizar, assim você pode só apertar enter para confirmar, só não fiz assim na de deletar, por motivos de segurança
+import csv, os
 
 logs = open('logs.txt','w')
 
 def create_files():
     '''criar arquivos necessários se não existirem'''
 
-    #automaticamente criará o usuário owner, que pode gerar produtos e outros usuários
     path = os.getcwd()
     if not os.path.exists(f'{path}/products.csv'):
         with open('products.csv','w') as file:
@@ -21,17 +17,12 @@ def Login():
     '''função para lógica de login'''
 
     isLogged = False
-
-    #pegar a lista de todos os usuários cadastrados
-    users = []
-    with open('users.csv') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            users.append(row)
+    users = read_user_list()
 
     while not isLogged:
+        print('-----Login-----')
         user_input = input('User: ')
-        password_input = input('Password: ')
+        password_input = input('Password: ');print('')
 
         #checar se usuário e senha estão corretos
         for i in range(len(users)):
@@ -42,13 +33,13 @@ def Login():
                 break
            
             if i >= len(users) - 1 and not isLogged:
-                print('credenciais inválidas')
+                print('credenciais inválidas');print('')
                 break
         
         #Opção de sair
         if not isLogged:
             option = input('Quer sair? [s/n]: ')
-            if option.lower().strip() == 's':
+            if option.lower().strip() != 'n':
                 program_exit()
         
 def Main(id, user, permission):
@@ -57,7 +48,7 @@ def Main(id, user, permission):
     print('-------------------------');print('')
     print(f'Bem-vindo(a) {user}!');print('')
 
-    #só vai sair quando o usuário pedir
+    #Menu principal
     while True:
         maximum = 2
         print('O que você gostaria de fazer?');print('')
@@ -81,6 +72,7 @@ def Main(id, user, permission):
             logs.write(f'user {id} left\n')
             Login()
 
+        #Lista de produto/preço
         elif option == 2:
             print('gerando lista de produtos:')
             print('-----------------------')
@@ -99,10 +91,11 @@ def Main(id, user, permission):
 #Gerenciar----------------------------------------------------
 
 def management(id, user, permission):
-    '''onde dados dos produtos podem ser alterados'''
+    '''função para dono(a) e/ou gerente(s)'''
 
     logs.write('went to management function\n')
 
+    #Menu
     while True:
         print('--------------------------------')
         print(f'O que deseja gerenciar {user}?');print('')
@@ -112,8 +105,8 @@ def management(id, user, permission):
         
         if option == 0:
             break
-        #gerenciar produtos
         elif option == 1:
+            #Menu de gerenciar produtos
             while True:
                 print('----------------------------------')
                 print('Qual modificação fará em produtos?');print('')
@@ -142,8 +135,8 @@ def management(id, user, permission):
                         if option.lower().strip() == 'n':
                             break
 
-                #deletar produto
                 elif option == 3:
+                    #Menu de deletar produto
                     while True:
                         print('Deletando produto: ')
                         product_id = input('Digite o ID do produto que deseja deletar: ')
@@ -157,8 +150,8 @@ def management(id, user, permission):
                         option = input('Quer deletar outro produto?[s/n]: ');print('')
                         if option.lower().strip() == 'n':
                             break
-        #Gerenciar usuários
         elif option == 2:
+            #Menu de gerenciar usuários
             while True:
                 print('---------------------------------')
                 print('Que modificação fará em usuários?');print('')
@@ -170,7 +163,7 @@ def management(id, user, permission):
                     break
                 elif option == 1:
                     print('Adicionando usuário: ')
-                    create_users()
+                    create_users(permission)
                 elif option == 2:
                     print('Modificando usuário: ')
                     while True:
@@ -179,6 +172,7 @@ def management(id, user, permission):
 
                             ind, users = get_users_index(user_id)
 
+                            #verificar se permissão é suficiente
                             if permission < int(users[ind]['permission']):
                                 print('Você não tem permissão para isso')
                             
@@ -197,11 +191,19 @@ def management(id, user, permission):
                         print('Deletando usuário: ')
                         user_id = input('Digite o ID do usuário que deseja deletar: ')
                         if verify_product_id(user_id):
-                            option = input('Tem certeza?[s/n]: ')
-                            if option.lower().strip() == 's':
-                                delete_user(user_id)    
+
+                            ind, users = get_users_index(user_id)
+
+                            #verificar se permissão é suficiente
+                            if permission < int(users[ind]['permission']):
+                                print('Você não tem permissão para isso')
+                                logs.write(f'user {id} failed to delete user {user_id}')
                             else:
-                                print('operação cancelada')
+                                option = input('Tem certeza?[s/n]: ')
+                                if option.lower().strip() == 's':
+                                    delete_user(user_id)    
+                                else:
+                                    print('operação cancelada')     
 
                         option = input('Quer deletar outro usuário?[s/n]: ');print('')
                         if option.lower().strip() == 'n':
@@ -278,14 +280,14 @@ def cashier(id, user):
             return
         elif option == 1:
 
-            #cada venda inicia um looping
+            #venda
             while True:
                 print('---------------------------------------')
                 logs.write(f'\n({id}){user} started a sale\n')
                 current_sell_product_list = [] #lista de compras
                 total = 0
                 
-                #loop até os dados estarem corretos ou o usuário decidir cancelar
+                #adição de produtos na lista
                 while True:
                     product_repeated = False
                     print('')
@@ -387,8 +389,11 @@ def update_amount_cashier(product_list):
 
 #CRUD------------------------------------------------------------------------------------------
 
-def create_users():
+def create_users(permission):
+    '''Função para criar usuários'''
+
     print('Insira os dados do usuário')
+
     #verifica se id desejado já está em uso
     while True:
         user_id = input('ID: ')
@@ -410,7 +415,7 @@ def create_users():
             print('Dados inválidos')
 
     print('Nível de permissão: ', end='')
-    user_permission = while_option(0,3)
+    user_permission = while_option(0,permission)
 
     #adicionar usuário no arquivo
     with open('users.csv','a') as file:
@@ -460,7 +465,7 @@ def read_user_list():
             reader = csv.DictReader(file) #para usar o header como chave
             for row in reader:
                 users.append(row)
-    logs.write('Products list created\n')
+    logs.write('User list created\n')
     return users
 
 def read_product_list():
@@ -503,11 +508,10 @@ def delete_product(product_id):
 
     ind, products = get_product_index(product_id)
     
-    #deletar item
+    #deletar item da lista
     del(products[ind])
 
     update_products(products)
-
     logs.write(f'product {product_id} deleted\n')
 
 def delete_user(user_id):
@@ -517,7 +521,7 @@ def delete_user(user_id):
     
     #deletar item
     del(users[ind])
-    print(users)
+
     update_users(users)
 
     logs.write(f'user {user_id} deleted\n')
@@ -530,26 +534,34 @@ def while_option(minimum=False,maximum=False,isFloat=False):
     while True:
         option = input('')
         try:
+            #para poder usar juntamente com valores monetários
             if not isFloat:
                 option = int(option)
             else:
                 option = float(option)
 
+            #valor mínimo
             if minimum:
                 if option < minimum:
-                    print('Opção inválida');print('')
-                    continue 
+                    print('Opção inválida')
+                    print('Digite novamente: ', end='')
+                    continue
+
+            #valor máximo 
             if maximum:
                 if option > maximum:
-                    print('Opção inválida');print('')
+                    print('Opção inválida')
+                    print('Digite novamente: ', end='')
                     continue
             break
         except ValueError:
             print('Opção inválida')
+            print('Digite novamente: ', end='')
     return option
 
 def verify_user_id(user_id):
-    '''Verifica de id de usuário existe'''
+    '''Verifica de id de usuário existe criando uma lista e verificando todos'''
+
     while True:
         users = read_user_list()
         if user_id not in (i['id'] for i in users):
@@ -564,7 +576,8 @@ def verify_user_id(user_id):
             return True
 
 def verify_product_id(product_id):
-    '''Verifica se id de produto existe'''
+    '''Verifica se id de produto existe criando uma lista e verificando todos'''
+
     while True:
         products = read_product_list()
         if product_id not in (i['id'] for i in products):
@@ -607,6 +620,7 @@ def get_product_index(product_id, create_list=True):
 def program_exit():
     '''função para sair do programa de forma segura'''
 
+    print('Até logo!')
     logs.write('program exit')
     logs.close()
     quit()
