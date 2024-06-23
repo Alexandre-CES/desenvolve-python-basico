@@ -8,7 +8,7 @@ def create_files():
     path = os.getcwd()
     if not os.path.exists(f'{path}/products.csv'):
         with open('products.csv','w') as file:
-            file.write('id,name,price,amount')
+            file.write('id,name,category,price,amount')
     if not os.path.exists(f'{path}/users.csv'):
         with open('users.csv','w') as file:
             file.write('id,user,password,permission\n0,owner,00000,3')
@@ -71,22 +71,38 @@ def Main(id, user, permission):
         elif option == 1:
             logs.write(f'user {id} left\n')
             Login()
-
-        #Lista de produto/preço
         elif option == 2:
-            print('gerando lista de produtos:')
-            print('-----------------------')
-            products = read_product_list()
-            for product in products:
-                print(f'{product["name"]} / R${product["price"]}')
-            input('.')
-
+            product_list_menu()
         elif permission >= 1 and option == 3:
             cashier(id, user)
         elif permission >= 2 and option == 4:
             management(id, user, permission)
         else:
             print('Opção inválida');print('')
+
+#ver lista de produtos:
+def product_list_menu():
+    '''Mostrar lista ordenada de acordo com o que o usuário escolher'''
+    while True:
+        print('Como quer ordenar?')
+        print('[0]Voltar - [1]Por nome - [2]Por preço')
+
+        option = while_option(0,2)
+
+        if option == 0:
+            break
+        print('gerando lista de produtos:')
+        print('-----------------------')
+        products = read_product_list()
+
+        if option == 1:
+            products = sorted(products, key=lambda x: x['name'])
+        elif option == 2:
+            products = sorted(products, key=lambda x: float(x['price']))
+
+        for product in products:
+            print(f'{product["name"]} / R${product["price"]}')
+        input('.')
 
 #Gerenciar----------------------------------------------------
 
@@ -95,7 +111,6 @@ def management(id, user, permission):
 
     logs.write('went to management function\n')
 
-    #Menu
     while True:
         print('--------------------------------')
         print(f'O que deseja gerenciar {user}?');print('')
@@ -106,108 +121,145 @@ def management(id, user, permission):
         if option == 0:
             break
         elif option == 1:
-            #Menu de gerenciar produtos
-            while True:
-                print('----------------------------------')
-                print('Qual modificação fará em produtos?');print('')
-                print('[0]Voltar - [1]Criar produto - [2]Modificar produto - [3]Deletar produto')
-
-                option = while_option(0,3);print('')
-
-                if option == 0:
-                    break
-                #adicionar produto
-                elif option == 1:
-                    print('Criando produto:')
-                    create_products()
-                #modificar produto
-                elif option == 2:
-                    print('Modificando produto: ')
-                    while True:
-                        product_id = input('Digite o ID do produto: ');print('')
-                        if verify_product_id(product_id):
-                            print('O que deseja modificar?');print('')
-                            print('[0]Voltar - [1]Nome - [2]Preço unitário - [3]Quantidade - [4]Todos');print('')
-
-                            update_product_manager(product_id)
-
-                        option = input('Quer alterar outro produto?[s/n]: ');print('')
-                        if option.lower().strip() == 'n':
-                            break
-
-                elif option == 3:
-                    #Menu de deletar produto
-                    while True:
-                        print('Deletando produto: ')
-                        product_id = input('Digite o ID do produto que deseja deletar: ')
-                        if verify_product_id(product_id):
-                            option = input('Tem certeza?[s/n]: ')
-                            if option.lower().strip() == 's':
-                                delete_product(product_id)    
-                            else:
-                                print('operação cancelada')
-
-                        option = input('Quer deletar outro produto?[s/n]: ');print('')
-                        if option.lower().strip() == 'n':
-                            break
+            manage_products()
         elif option == 2:
-            #Menu de gerenciar usuários
+            manage_users(permission)
+
+def manage_products():
+    '''Menu de gerenciar produtos'''
+
+    while True:
+        print('----------------------------------')
+        print('Qual modificação fará em produtos?');print('')
+        print('[0]Voltar - [1]Criar produto - [2]Modificar produto - [3]Deletar produto')
+
+        option = while_option(0,3);print('')
+
+        if option == 0:
+            break
+        #adicionar produto
+        elif option == 1:
+            print('Criando produto:')
+            create_products()
+        #modificar produto
+        elif option == 2:
+            print('Modificando produto: ')
             while True:
-                print('---------------------------------')
-                print('Que modificação fará em usuários?');print('')
-                print('[0]Voltar - [1]Adicionar usuários - [2]Modificar dados de usuário - [3]Deletar usuário')
+                product_id = input('Digite o ID do produto: ');print('')
+                if verify_product_id(product_id):
+                    print('O que deseja modificar?');print('')
+                    print('[0]Voltar - [1]Nome - [2]Categoria - [3]Preço unitário - [4]Quantidade - [5]Todos');print('')
 
-                option = while_option(0,3);print('')
+                    update_product_manager(product_id)
 
-                if option == 0:
+                option = input('Quer alterar outro produto?[s/n]: ');print('')
+                if option.lower().strip() == 'n':
                     break
-                elif option == 1:
-                    print('Adicionando usuário: ')
-                    create_users(permission)
-                elif option == 2:
-                    print('Modificando usuário: ')
-                    while True:
-                        user_id = input('Digite o ID do usuário: ');print('')
-                        if verify_user_id(user_id):
 
-                            ind, users = get_users_index(user_id)
+        elif option == 3:
+            #Menu de deletar produto
+            while True:
+                print('Deletando produto: ')
+                product_id = input('Digite o ID do produto que deseja deletar: ')
+                if verify_product_id(product_id):
+                    option = input('Tem certeza?[s/n]: ')
+                    if option.lower().strip() == 's':
+                        delete_product(product_id)    
+                    else:
+                        print('operação cancelada')
 
-                            #verificar se permissão é suficiente
-                            if permission < int(users[ind]['permission']):
-                                print('Você não tem permissão para isso')
-                            
-                            else:
-                                print(f'O que deseja modificar do usuário {users[ind]["user"]}?');print('')
-                                print('[0]Voltar - [1]Usuário - [2]Senha - [3]Permissão - [4]Todos');print('')
-                            
-                                update_user_manager(user_id)
+                option = input('Quer deletar outro produto?[s/n]: ');print('')
+                if option.lower().strip() == 'n':
+                    break
 
-                        option = input('Quer alterar outro usuário?[s/n]: ');print('')
-                        if option.lower().strip() == 'n':
-                            break
+def update_product_manager(product_id,new_name=False,new_category=False,new_price=False,new_amount=False):
+    '''função para modificar dados de produtos na lista. 
+    Todos estão com falso como padrão, assim só será modificado os valores que forem passados'''
 
-                elif option == 3:     
-                    while True:
-                        print('Deletando usuário: ')
-                        user_id = input('Digite o ID do usuário que deseja deletar: ')
-                        if verify_product_id(user_id):
+    option = while_option(0,5)
+    if option == 0:
+        return
+    if option == 1 or option == 5:
+        new_name = input('Novo nome: ')
+    if option == 2 or option == 5:
+        new_category = input('Nova categoria: ')
+    if option == 3 or option == 5:
+        new_price = input('Novo preço: ')
+    if option == 4 or option == 5:
+        new_amount = input('Nova quantidade: ')
 
-                            ind, users = get_users_index(user_id)
+    ind, products = get_product_index(product_id)
+    
+    #renomear na lista
+    if new_name:
+        products[ind]['name'] = new_name
+    if new_category:
+        products[ind]['category'] = new_category
+    if new_price:
+        products[ind]['price'] = new_price
+    if new_amount:
+        products[ind]['amount'] = new_amount
 
-                            #verificar se permissão é suficiente
-                            if permission < int(users[ind]['permission']):
-                                print('Você não tem permissão para isso')
-                                logs.write(f'user {id} failed to delete user {user_id}')
-                            else:
-                                option = input('Tem certeza?[s/n]: ')
-                                if option.lower().strip() == 's':
-                                    delete_user(user_id)    
-                                else:
-                                    print('operação cancelada')     
+    update_products(products) #onde o arquivo é modificado
 
-                        option = input('Quer deletar outro usuário?[s/n]: ');print('')
-                        if option.lower().strip() == 'n':
-                            break
+def manage_users(permission):
+    '''Menu de gerenciar usuários'''
+    while True:
+        print('---------------------------------')
+        print('Que modificação fará em usuários?');print('')
+        print('[0]Voltar - [1]Adicionar usuários - [2]Modificar dados de usuário - [3]Deletar usuário')
+
+        option = while_option(0,3);print('')
+
+        if option == 0:
+            break
+        elif option == 1:
+            print('Adicionando usuário: ')
+            create_users(permission)
+        elif option == 2:
+            print('Modificando usuário: ')
+            while True:
+                user_id = input('Digite o ID do usuário: ');print('')
+                if verify_user_id(user_id):
+
+                    ind, users = get_users_index(user_id)
+
+                    #verificar se permissão é suficiente
+                    if permission < int(users[ind]['permission']):
+                        print('Você não tem permissão para isso')
+                    else:
+                        print(f'O que deseja modificar do usuário {users[ind]["user"]}?');print('')
+                        print('[0]Voltar - [1]Usuário - [2]Senha - [3]Permissão - [4]Todos');print('')
+                    
+                        update_user_manager(user_id)
+
+                option = input('Quer alterar outro usuário?[s/n]: ');print('')
+                if option.lower().strip() == 'n':
+                    break
+
+        elif option == 3:     
+            while True:
+                print('Deletando usuário: ')
+                user_id = input('Digite o ID do usuário que deseja deletar: ')
+                if verify_product_id(user_id):
+
+                    ind, users = get_users_index(user_id)
+
+                    #verificar se permissão é suficiente
+                    if permission < int(users[ind]['permission']):
+                        print('Você não tem permissão para isso')
+                        logs.write(f'user {id} failed to delete user {user_id}')
+                    else:
+                        option = input('Tem certeza?[s/n]: ')
+                        if option.lower().strip() == 's':
+                            delete_user(user_id)    
+                        else:
+                            print('operação cancelada')     
+
+                option = input('Quer deletar outro usuário?[s/n]: ');print('')
+                if option.lower().strip() == 'n':
+                    break
+
 
 def update_user_manager(user_id,new_user=False,new_password=False,new_permission=False):
     '''função para modificar dados de usuários na lista. 
@@ -236,31 +288,7 @@ def update_user_manager(user_id,new_user=False,new_password=False,new_permission
 
     update_users(users);print('')
 
-def update_product_manager(product_id,new_name=False,new_price=False,new_amount=False):
-    '''função para modificar dados de produtos na lista. 
-    Todos estão com falso como padrão, assim só será modificado os valores que forem passados'''
 
-    option = while_option(0,4)
-    if option == 0:
-        return
-    if option == 1 or option == 4:
-        new_name = input('Novo nome: ')
-    if option == 2 or option == 4:
-        new_price = input('Novo preço: ')
-    if option == 3 or option == 4:
-        new_amount = input('Nova quantidade: ')
-
-    ind, products = get_product_index(product_id)
-    
-    #renomear na lista
-    if new_name:
-        products[ind]['name'] = new_name
-    if new_price:
-        products[ind]['price'] = new_price
-    if new_amount:
-        products[ind]['amount'] = new_amount
-
-    update_products(products)
 
 #caixa----------------------------------------------------------------------
 
@@ -313,14 +341,13 @@ def cashier(id, user):
                                     item['amount'] = new_amount
                                     item['sell_price'] = new_amount * float(products[ind]['price'])
                                     logs.write('Product amount updated\n')
-                                break
                             else:
                                 option = input('quer removê-lo da lista?: ')
                                 if option.lower().strip() == 's': #deixei esse como sim para evitar apagar sem querer
                                     logs.write(f'product {item["id"]} removed from list')
                                     del(current_sell_product_list[ind])
 
-                                break
+                            break
                         ind += 1  
 
                     #só adicionará na lista se ele não estiver nela
@@ -375,14 +402,13 @@ def cashier(id, user):
             print('Opção inválida')
 
 def update_amount_cashier(product_list):
-    '''Para dar update na quantidade dos produtos vendidos no caixa. Decidi deixar separado para que o código fique mais claro'''
+    '''Para dar update na quantidade dos produtos vendidos no caixa. Com o id de cada item na lista de compras'''
     
     products = read_product_list()
     for item in product_list:
-        product_id = item['id']
 
+        product_id = item['id']
         ind = get_product_index(product_id, False)
-        
         products[ind]['amount'] = int(products[ind]['amount']) - int(item['amount'])
 
     update_products(products)
@@ -394,6 +420,8 @@ def create_users(permission):
 
     print('Insira os dados do usuário')
 
+    user_id, user_user = '',''
+
     #verifica se id desejado já está em uso
     while True:
         user_id = input('ID: ')
@@ -403,26 +431,39 @@ def create_users(permission):
         if user_id not in (i['id'] for i in users):
             break
         else:
-            print('id já está sendo usado')
+            print('id já está sendo usado, tente outro')
     
+    #verifica se inome desejado já está em uso
     while True:
         user_user = input('Usuário: ')
-        user_password = input('Senha: ')
-
-        if user_user != '' and user_password != '':
+        if user_user.strip() == '':
+            continue
+        users = read_user_list()
+        if user_user not in (i['user'] for i in users):
             break
         else:
-            print('Dados inválidos')
+            print('user já está sendo usado, tente outro')
+
+    while True:
+        user_password = input('Senha: ')
+        if user_password.strip() != '':
+            break
 
     print('Nível de permissão: ', end='')
     user_permission = while_option(0,permission)
 
-    #adicionar usuário no arquivo
-    with open('users.csv','a') as file:
-        file.write('\n')
-        file.write(f'{user_id},{user_user},{user_password},{user_permission}')
+    print(f'Quer mesmo criar este usuário? {user_id},{user_user},{user_password},{user_permission}')
+    option = input('[s/n]')
+    if option.lower().strip() != 'n':
+        #adicionar usuário no arquivo
+        with open('users.csv','a') as file:
+            file.write('\n')
+            file.write(f'{user_id},{user_user},{user_password},{user_permission}')
 
-    logs.write(f'created user {user_user} id:{user_id}\n')
+        logs.write(f'created user {user_user} id:{user_id}\n')
+    else:
+        print('Operação cancelada')
+        return
 
 def create_products():
     '''Função para criar produtos'''
@@ -441,9 +482,12 @@ def create_products():
             print('id já está sendo usado')
         
     while True:
-        product_name = input('Nome: ')
+        product_name = input('Nome: ').lower()
         if product_name.strip() != '':
             break
+    
+    product_category = input('Categoria: ').lower()
+
 
     print('Preço unitário: ')
     product_price = while_option(0,False,True)
@@ -454,7 +498,7 @@ def create_products():
     #adicionar produto no arquivo
     with open('products.csv','a') as file:
         file.write('\n')
-        file.write(f'{product_id},{product_name},{product_price},{product_amount}')
+        file.write(f'{product_id},{product_name},{product_category},{product_price},{product_amount}')
 
     logs.write(f'created product {product_name} id:{product_id}\n')
 
@@ -495,9 +539,9 @@ def update_products(products):
     '''Reescreve a lista de produtos para atualizar dados'''
 
     with open('products.csv','w') as file:
-        file.write('id,name,price,amount\n')
+        file.write('id,name,category,price,amount\n')
         for i in range(len(products)):
-            file.write(f'{products[i]["id"]},{products[i]["name"]},{products[i]["price"]},{products[i]["amount"]}\n')
+            file.write(f'{products[i]["id"]},{products[i]["name"]},{products[i]["category"]},{products[i]["price"]},{products[i]["amount"]}')
             if i < len(products) - 1:
                 file.write('\n')
     
@@ -595,13 +639,9 @@ def get_users_index(user_id):
     '''Pegar o índice de usuário na lista'''
 
     users = read_user_list()
-    i = 0
-    for user in users:
+    for index, user in enumerate(users):
         if user['id'] == user_id:
-            break
-        i += 1
-
-    return i, users
+            return index, users
 
 def get_product_index(product_id, create_list=True):
     '''Pegar o índice de produto na lista'''
