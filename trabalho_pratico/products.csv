@@ -1,6 +1,9 @@
-id,name,price,amount
-0,agua,2,50
-1,leite,4,20
-2,pao,1,45
-3,bolacha,5,23
-4,pipoca doce,4.23,43
+id,name,category,price,amount
+0,agua,bebida,2,49
+1,miojo,comida,2.5,143
+2,cartela de ovo,comida,12.34,20
+3,pipoca doce,doce,4.56,24
+4,leite,laticinios,2.50,12
+5,borracha,escolar,2.45,153
+6,lapis,escolar,0.5,205
+7,caneta,escolar,0.45,175

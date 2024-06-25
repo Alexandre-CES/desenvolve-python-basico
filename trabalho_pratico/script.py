@@ -52,7 +52,7 @@ def Main(id, user, permission):
     while True:
         maximum = 2
         print('O que você gostaria de fazer?');print('')
-        print('[0]sair - [1]trocar usuário - [2]Lista de produtos',end=' ')
+        print('[0]sair - [1]trocar usuário - [2]Listas',end=' ')
 
         #permissões para pessoas com cargo maior
         if permission >= 1:
@@ -84,25 +84,50 @@ def Main(id, user, permission):
 def product_list_menu():
     '''Mostrar lista ordenada de acordo com o que o usuário escolher'''
     while True:
-        print('Como quer ordenar?')
-        print('[0]Voltar - [1]Por nome - [2]Por preço')
-
-        option = while_option(0,2)
+        print('O que quer listar?: ')
+        print('[0]Voltar - [1]Produtos - [2]Categorias')
+        option = while_option(0,2);print('')
 
         if option == 0:
             break
-        print('gerando lista de produtos:')
-        print('-----------------------')
-        products = read_product_list()
+        elif option == 1:
+            while True:
+                print('Como quer ordenar?')
+                print('[0]Voltar - [1]Por nome - [2]Por preço')
 
-        if option == 1:
-            products = sorted(products, key=lambda x: x['name'])
+                option = while_option(0,2)
+
+                if option == 0:
+                    break
+                print('gerando lista de produtos:')
+                print('-----------------------')
+                products = read_product_list()
+
+                if option == 1:
+                    products = sorted(products, key=lambda x: x['name'])
+                elif option == 2:
+                    products = sorted(products, key=lambda x: float(x['price']))
+
+                for product in products:
+                    print(f'{product["name"]} / R${product["price"]}')
+                input('.')
+                logs.write('Products listed\n')
         elif option == 2:
-            products = sorted(products, key=lambda x: float(x['price']))
+            print('------------------------')
+            print('Listando categorias: ');print('...')
+            products = read_product_list()
+            categories = []
+            for product in products:
+                if product['category'].strip() != '':
+                    categories.append(product['category'])
+            categories = set(categories)
 
-        for product in products:
-            print(f'{product["name"]} / R${product["price"]}')
-        input('.')
+            for category in categories:
+                print(category)
+            logs.write('Categories listed\n')
+            input('.')
+        else:
+            print('Opcão inválida')
 
 #Gerenciar----------------------------------------------------
 
@@ -424,8 +449,8 @@ def create_users(permission):
 
     #verifica se id desejado já está em uso
     while True:
-        user_id = input('ID: ')
-        if user_id.strip() == '':
+        user_id = input('ID: ').strip()
+        if user_id == '':
             continue
         users = read_user_list()
         if user_id not in (i['id'] for i in users):
@@ -472,8 +497,8 @@ def create_products():
 
     #verifica se id desejado já está em uso
     while True:
-        product_id = input('ID: ')
-        if product_id.strip() == '':
+        product_id = input('ID: ').strip()
+        if product_id == '':
             continue
         products = read_product_list()
         if product_id not in (i['id'] for i in products):
@@ -482,11 +507,11 @@ def create_products():
             print('id já está sendo usado')
         
     while True:
-        product_name = input('Nome: ').lower()
-        if product_name.strip() != '':
+        product_name = input('Nome: ').lower().strip()
+        if product_name != '':
             break
     
-    product_category = input('Categoria: ').lower()
+    product_category = input('Categoria: ').lower().strip()
 
 
     print('Preço unitário: ')

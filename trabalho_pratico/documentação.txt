@@ -31,7 +31,10 @@ IMPLEMENTAÇÃO:
     A navegação é feito com a escolha de uma opção, numérica para múltipla escolha ou booleana. A ideia é ser uma navegação rápida então muitas opções tratam qualquer coisa que não for "n" como sim, preferi fazer assim para agilizar, assim você pode só apertar enter para confirmar, só não fiz assim na de deletar, por motivos de segurança.
 
     *Main:
-    Aqui, para clientes, só haverão opções de voltar, trocar de usuário e ver a lista de produtos. O resto só aparecerá para pessoas com nível de permissão suficiente, sendo elas: gerenciar(2+) e caixa(1+).
+    Aqui, para clientes, só haverão opções de voltar, trocar de usuário e ver a lista de produtos ou cateorias. O resto só aparecerá para pessoas com nível de permissão suficiente, sendo elas: gerenciar(2+) e caixa(1+).
+
+    *Lists(product_list_menu())
+    Onde os clientes podem ver as categorias existentes e ver a lista de produtos, ordenada por preço ou nome. Foi nessa parte que coloquei a estrutura ser(), para não ter repetição de categoria.
 
     *Management(gerenciar):
     Aqui é onde a maior parte do CRUD foi colocado, você pode escolher entre gerenciar produtos ou usuários e, para as duas opções, escolhe entre adicionar(create), atualizar(update) ou deletar(Delete). Especificamente na parte de usuários, você é proibido de fazer qualquer uma dessas coisas com cargos maiores que o seu, ou seja, um gerente não pode criar, mudar ou deletar uma conta de um dono.
