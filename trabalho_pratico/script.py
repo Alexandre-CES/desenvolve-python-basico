@@ -28,7 +28,7 @@ def Login():
         for i in range(len(users)):
             if users[i]['user'] == user_input and users[i]['password'] == password_input:
                 isLogged = True
-                logs.write(f'user {users[i]["id"]} logged\n')
+                logs.write(f'\nuser {users[i]["id"]} logged\n')
                 Main(users[i]['id'], user_input, int(users[i]['permission']))
                 break
            
@@ -69,7 +69,7 @@ def Main(id, user, permission):
         if option == 0:
             program_exit()
         elif option == 1:
-            logs.write(f'user {id} left\n')
+            logs.write(f'user {id} left\n\n')
             Login()
         elif option == 2:
             product_list_menu()
@@ -92,24 +92,41 @@ def product_list_menu():
             break
         elif option == 1:
             while True:
-                print('Como quer ordenar?')
-                print('[0]Voltar - [1]Por nome - [2]Por preço')
+                print('Como quer buscar produtos?')
+                print('[0]Voltar - [1]Ordenados por nome - [2]Ordenados por preço [3]Buscar por categoria')
 
-                option = while_option(0,2)
+                option = while_option(0,3)
 
                 if option == 0:
                     break
-                print('gerando lista de produtos:')
-                print('-----------------------')
+
                 products = read_product_list()
 
                 if option == 1:
                     products = sorted(products, key=lambda x: x['name'])
                 elif option == 2:
                     products = sorted(products, key=lambda x: float(x['price']))
+                elif option == 3:
+                    print('Digite a categoria: ')
+                    category = input().strip().lower();print('')
+                    products_category = []
+                    print(f'Buscando produtos do tipo {category}...')
+                    print('--------------------------------')
+                    for product in products:
+                        if product['category'] == category:
+                            products_category.append(product)
+                    if len(products) == 0:
+                        print('Nenhum produto encontrado nessa categoria')
+                    else:
+                        for product in products_category:
+                            print(f'{product["name"]} / R${product["price"]}')
 
-                for product in products:
-                    print(f'{product["name"]} / R${product["price"]}')
+                if option < 3:
+                    print('gerando lista de produtos:')
+                    print('-----------------------')
+                    for product in products:
+                        print(f'{product["name"]} / R${product["price"]}')
+
                 input('.')
                 logs.write('Products listed\n')
         elif option == 2:
@@ -134,7 +151,7 @@ def product_list_menu():
 def management(id, user, permission):
     '''função para dono(a) e/ou gerente(s)'''
 
-    logs.write('went to management function\n')
+    logs.write(f'{user} went to management function\n')
 
     while True:
         print('--------------------------------')

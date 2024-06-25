@@ -42,6 +42,10 @@ IMPLEMENTAÇÃO:
     *Cashier(caixa):
     É onde as vendas serão feitas. Ao iniciar uma venda, uma lista vazia é criada, sendo preenchida com os produtos que forem sendo registrados por meio de seus IDs. Cada produto só pode ser adicionado uma vez e, por segurança, não pode ser uma quantidade maior do que há no estoque. Se você escrever um id que já está na lista, você tem a opção de removê-lo ou trocar a quantidade colocada. Ao finalizar a venda, o arquivo de produtos será atualizado(update) com as novas quantidades.
 
+-utilities:
+    Fica mais para o fim do código. É o lugar que coloquei as funções que servem para reduzir a repetição de redundância
+
+
 ----------------------------------------------------------------------------------------------
 CONCLUSÃO:
 ----------------------------------------------------------------------------------------------
